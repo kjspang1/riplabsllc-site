@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- House Edge alert emails link here (ALERT_UNSUBSCRIBE_URL = https://<domain>/unsubscribe?t={token}).
+     Host it at https://riplabsllc.com/unsubscribe and paste the app's anon / publishable key below (it is public, the same one in app/.env.local). -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unsubscribe | House Edge</title>
+  <style>
+    body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 480px; margin: 80px auto; padding: 0 16px; color: #111; background: #fff; }
+    @media (prefers-color-scheme: dark) { body { color: #eee; background: #111; } }
+    h1 { font-size: 22px; }
+  </style>
+</head>
+<body>
+  <h1>House Edge email alerts</h1>
+  <p id="msg">Turning off email alerts...</p>
+  <script>
+    const SUPABASE_URL = 'https://llpsrnyyhjpocdkrldxl.supabase.co';
+    const ANON_KEY = 'YOUR-ANON-KEY';
+    const t = new URLSearchParams(location.search).get('t');
+    const msg = document.getElementById('msg');
+    if (!t) msg.textContent = 'This link is missing its code. Turn email alerts off in the app under Watchlist > Alerts.';
+    else fetch(`${SUPABASE_URL}/rest/v1/rpc/unsubscribe_alert_email`, {
+      method: 'POST',
+      headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_token: t }),
+    })
+      .then((r) => r.json())
+      .then((text) => { msg.textContent = text; })
+      .catch(() => { msg.textContent = 'Something went wrong. Turn email alerts off in the app under Watchlist > Alerts.'; });
+  </script>
+</body>
+</html>
