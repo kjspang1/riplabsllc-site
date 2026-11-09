@@ -18,17 +18,27 @@
   <script>
     const SUPABASE_URL = 'https://llpsrnyyhjpocdkrldxl.supabase.co';
     const ANON_KEY = 'YOUR-ANON-KEY';
-    const t = new URLSearchParams(location.search).get('t');
+    const t = new URLSearchParams(location.search).get('t') || '';
     const msg = document.getElementById('msg');
-    if (!t) msg.textContent = 'This link is missing its code. Turn email alerts off in the app under Watchlist > Alerts.';
-    else fetch(`${SUPABASE_URL}/rest/v1/rpc/unsubscribe_alert_email`, {
-      method: 'POST',
-      headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ p_token: t }),
-    })
-      .then((r) => r.json())
-      .then((text) => { msg.textContent = text; })
-      .catch(() => { msg.textContent = 'Something went wrong. Turn email alerts off in the app under Watchlist > Alerts.'; });
+    const fallback = 'Turn email alerts off in the House Edge app under Watchlist > Alerts.';
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(t)) {
+      msg.textContent = 'This link is missing its code or was cut off. ' + fallback;
+    } else {
+      fetch(`${SUPABASE_URL}/rest/v1/rpc/unsubscribe_alert_email`, {
+        method: 'POST',
+        headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_token: t }),
+      })
+        .then(async (r) => {
+          const body = await r.json().catch(() => null);
+          if (!r.ok || typeof body !== 'string') throw new Error((body && body.message) || r.status);
+          msg.textContent = body;
+        })
+        .catch((e) => {
+          console.warn('unsubscribe failed', e);
+          msg.textContent = 'Something went wrong. ' + fallback;
+        });
+    }
   </script>
 </body>
 </html>
